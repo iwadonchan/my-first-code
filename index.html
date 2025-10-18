@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掲示板 - GitHub Issues BBS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .actions {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .posts-container {
+            padding: 0 20px 30px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .post {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .post:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .post-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .post-title a:hover {
+            color: #3b82f6;
+        }
+
+        .post-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .post-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .post-content {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .post-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .post-number {
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .post-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .post-link:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .actions {
+                padding: 20px 15px;
+            }
+
+            .btn-primary, .btn-secondary {
+                display: block;
+                margin: 10px auto;
+                padding: 12px 25px;
+            }
+
+            .post-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .post-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .post {
+                padding: 15px;
+            }
+
+            .post-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📋 掲示板</h1>
+            <p>GitHub Issuesで運営するコミュニティ掲示板</p>
+        </header>
+
+        <div class="actions">
+            <a href="https://github.com/iwadonchan/my-first-code/issues/new" target="_blank" class="btn-primary">
+                ✍️ 新規投稿
+            </a>
+            <a href="https://github.com/iwadonchan/my-first-code/issues" target="_blank" class="btn-secondary">
+                📁 すべての投稿
+            </a>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalPosts">0</div>
+                <div class="stat-label">総投稿数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="openPosts">0</div>
+                <div class="stat-label">公開中</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="closedPosts">0</div>
+                <div class="stat-label">クローズ済み</div>
+            </div>
+        </div>
+
+        <div class="posts-container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>投稿を読み込中...</p>
+            </div>
+            <div id="posts"></div>
+        </div>
+    </div>
+
+    <script>
+        const config = {
+            owner: 'iwadonchan',
+            repo: 'my-first-code',
+            maxPosts: 20
+        };
+
+        async function fetchGitHubIssues() {
+            try {
+                // GitHub APIを使用（CORS対策にjsonP風の回避策）
+                const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/issues?state=all&sort=created&direction=desc&per_page=${config.maxPosts}`;
+
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'GitHub-BBS-App'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`GitHub APIエラー: ${response.status} - リポジトリが公開されているか確認してください`);
+                }
+
+                const issues = await response.json();
+                return issues.filter(issue => !issue.pull_request);
+            } catch (error) {
+                console.error('Error fetching issues:', error);
+                throw error;
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function truncateContent(content, maxLength = 200) {
+            if (content.length <= maxLength) return content;
+            return content.substring(0, maxLength) + '...';
+        }
+
+        function createPostHTML(issue) {
+            const createdAt = formatDate(issue.created_at);
+            const updatedAt = formatDate(issue.updated_at);
+            const truncatedContent = truncateContent(issue.body || '');
+
+            return `
+                <div class="post">
+                    <h3 class="post-title">
+                        <a href="${issue.html_url}" target="_blank">${issue.title}</a>
+                    </h3>
+                    <div class="post-meta">
+                        <span>👤 ${issue.user.login}</span>
+                        <span>📅 ${createdAt}</span>
+                        <span>🏷️ ${issue.state === 'open' ? '公開中' : 'クローズ済み'}</span>
+                        ${issue.comments > 0 ? `<span>💬 ${issue.comments} コメント</span>` : ''}
+                    </div>
+                    ${truncatedContent ? `<div class="post-content">${truncatedContent}</div>` : ''}
+                    <div class="post-footer">
+                        <span class="post-number">#${issue.number}</span>
+                        <a href="${issue.html_url}" target="_blank" class="post-link">続きを読む →</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStats(issues) {
+            const totalPosts = issues.length;
+            const openPosts = issues.filter(issue => issue.state === 'open').length;
+            const closedPosts = issues.filter(issue => issue.state === 'closed').length;
+
+            document.getElementById('totalPosts').textContent = totalPosts;
+            document.getElementById('openPosts').textContent = openPosts;
+            document.getElementById('closedPosts').textContent = closedPosts;
+        }
+
+        async function displayPosts() {
+            const loadingElement = document.getElementById('loading');
+            const postsElement = document.getElementById('posts');
+
+            try {
+                const issues = await fetchGitHubIssues();
+
+                loadingElement.style.display = 'none';
+
+                if (issues.length === 0) {
+                    postsElement.innerHTML = `
+                        <div style="text-align: center; padding: 50px 20px; color: #6b7280;">
+                            <h3>📝 まだ投稿がありません</h3>
+                            <p>最初の投稿を作成してみましょう！</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                updateStats(issues);
+
+                postsElement.innerHTML = issues.map(issue => createPostHTML(issue)).join('');
+
+            } catch (error) {
+                loadingElement.style.display = 'none';
+                postsElement.innerHTML = `
+                    <div class="error">
+                        <h3>⚠️ エラーが発生しました</h3>
+                        <p>${error.message}</p>
+                        <p>以下を確認してください：</p>
+                        <ul style="text-align: left; display: inline-block; margin-top: 10px;">
+                            <li>リポジトリ <a href="https://github.com/iwadonchan/my-first-code" target="_blank">iwadonchan/my-first-code</a> が存在する</li>
+                            <li>リポジトリが公開（Public）になっている</li>
+                            <li>Issuesが有効化されている</li>
+                        </ul>
+                        <p style="margin-top: 15px;">リポジトリが存在しない場合は、まず<a href="https://github.com/new" target="_blank">リポジトリを作成</a>してください。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ページ読み込み時に投稿を表示
+        document.addEventListener('DOMContentLoaded', displayPosts);
+
+        // 5分ごとに自動更新
+        setInterval(displayPosts, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

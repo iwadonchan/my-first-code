@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "number": 1,
+    "title": "ようこそ！掲示板へ",
+    "body": "これは最初の投稿です。GitHub Issuesを利用した掲示板システムへようこそ！\n\n**使い方：**\n1. 「新規投稿」ボタンから新しいIssueを作成\n2. 投稿は自動的にこの掲示板に表示されます\n3. コメントで他のユーザーと交流できます\n\n自由に投稿してください！",
+    "user": {
+      "login": "iwadonchan",
+      "avatar_url": "https://github.com/iwadonchan.png"
+    },
+    "state": "open",
+    "created_at": "2025-10-18T00:00:00Z",
+    "updated_at": "2025-10-18T00:00:00Z",
+    "html_url": "https://github.com/iwadonchan/my-first-code/issues/1",
+    "comments": 0,
+    "labels": []
+  }
+]
